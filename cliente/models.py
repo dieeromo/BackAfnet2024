@@ -1,5 +1,7 @@
 from django.db import models
 from accounts.models import UserAccount
+from datetime import date, timedelta
+from contabilidad.models import Caja
 
 # Create your models here.
 
@@ -121,7 +123,12 @@ class PlanClienteVivienda(models.Model):
     plan = models.ForeignKey(Plan,  on_delete=models.CASCADE)
     fecha_instalacion = models.DateField()
     fecha_pago = models.DateField()
-    estado = models.IntegerField(choices=[(1, 'Activo'), (2, 'Suspendido'), (3, 'Cortado'),(4, 'CambioPlan'),(5, 'Retirado')], default=1)
+    estado = models.IntegerField(choices=[(1, 'Activo'), (2, 'Suspendido'),(6, 'Retirado')], default=1)
+    estadoServicio = models.IntegerField(choices=[(1, 'Corriendo'), (2, 'Cortado')], default=1)
+    estadoEquipos = models.IntegerField(choices=[(1, 'Funcionando'), (2, 'Por retirar'), (3, 'Retirados'),(4, 'Reseteados por retirados'),], default=1)
+    #Activo: estado normal
+    #Suspendido: Cuando el cliente suspende por un par de meses
+    #Cortado: Cuando el cliente se retrasa de pagar
     
     digitador = models.ForeignKey(UserAccount, on_delete=models.CASCADE) 
   
@@ -137,5 +144,85 @@ class Upgrade(models.Model):
     def __str__(self):
         return f'U:{self.id} PCV:{self.planClienteVivienda.id} - {self.planClienteVivienda.clienteVivienda.cliente.nombresApellidos} - CV{self.planClienteVivienda.clienteVivienda.id} - {self.plan_upgrade} desde {self.fecha}'
 
+#########################
+
+class OrdenCobro(models.Model):
+    planClienteVivienda = models.ForeignKey(PlanClienteVivienda, on_delete=models.CASCADE)
+    fecha_generacion = models.DateField()
+    fecha_vencimiento = models.DateField()
+    valor_subtotal = models.DecimalField(max_digits=8, decimal_places=2)
+    valor_iva = models.DecimalField(max_digits=8, decimal_places=2)
+    valor_total = models.DecimalField(max_digits=8, decimal_places=2)
+    valor_abonado = models.DecimalField(max_digits=8, decimal_places=2, default=0)  # Nuevo campo para abonos
+    estado = models.IntegerField(choices=[(1, 'Pendiente'), (2, 'Vencida'), (3, 'Pagada')], default=1)
+    
+    def __str__(self):
+        return f'Orden de Cobro #{self.id} - PCV:{self.planClienteVivienda.id}'
+
+    def calcular_valores(self):
+        if self.planClienteVivienda.estado == 1 and self.planClienteVivienda.estadoServicio == 1:
+            self.valor_subtotal = self.planClienteVivienda.plan.valor
+            self.valor_iva = self.valor_subtotal * 0.15  # Supone un IVA del 15%
+            self.valor_total = self.valor_subtotal + self.valor_iva
+        else:
+            self.valor_subtotal = 0
+            self.valor_iva = 0
+            self.valor_total = 0
+        self.save()
+
+    def actualizar_abono(self, abono):
+        self.valor_abonado += abono
+        if self.valor_abonado >= self.valor_total:
+            self.estado = 3  # Pagada
+        else:
+            self.estado = 1  # Pendiente
+        self.save()
+
+    @staticmethod
+    def generar_ordenes_de_cobro():
+        hoy = date.today()
+        primer_dia_mes = hoy.replace(day=1)
+        fecha_vencimiento = primer_dia_mes + timedelta(days=9)
+        plan_cliente_viviendas = PlanClienteVivienda.objects.filter(estado=1, estadoServicio=1)
+        
+        for pcv in plan_cliente_viviendas:
+            orden = OrdenCobro(
+                planClienteVivienda=pcv,
+                fecha_generacion=primer_dia_mes,
+                fecha_vencimiento=fecha_vencimiento,
+            )
+            orden.calcular_valores()
+            orden.save()
+    
+    @staticmethod
+    def actualizar_estados_de_ordenes():
+        ordenes = OrdenCobro.objects.filter(estado=1)
+        hoy = date.today()
+        
+        for orden in ordenes:
+            if hoy > orden.fecha_vencimiento:
+                orden.estado = 2  # Vencida
+                orden.save()
 
 
+class PagosPlanClienteVivienda(models.Model):
+    orden_cobro = models.ForeignKey(OrdenCobro, on_delete=models.CASCADE)
+    caja = models.ForeignKey(Caja, on_delete=models.CASCADE)
+    fecha_pago = models.DateField()
+    valor_abono = models.DecimalField(max_digits=8, decimal_places=2)
+    subtotal_abono = models.DecimalField(max_digits=8, decimal_places=2)
+    iva_abono = models.DecimalField(max_digits=8, decimal_places=2)
+    total_abono = models.DecimalField(max_digits=8, decimal_places=2)
+    observacion = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f'Pago #{self.id} - OrdenCobro:{self.orden_cobro.id} - Abono: {self.total_abono}'
+
+    def calcular_abono(self):
+        self.subtotal_abono = self.valor_abono / 1.15  # Supone un IVA del 15%
+        self.iva_abono = self.valor_abono - self.subtotal_abono
+        self.total_abono = self.valor_abono
+        self.save()
+
+        # Actualizar el abono acumulado en OrdenCobro
+        self.orden_cobro.actualizar_abono(self.total_abono)
