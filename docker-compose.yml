@@ -1,0 +1,32 @@
+version: '3'
+services:
+  dbInversiones:
+    image: postgres
+    container_name: postgres_container_inversiones
+    restart: always
+    ports:
+      - "5435:5432"
+    environment:
+      - DATABASE_HOST=127.0.0.1
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres111afcorp
+      - POSTGRES_PASSWORD=postgres111AFcorp2023*
+      #- DATABASE_HOST=127.0.0.1
+    volumes:   # primero se debe crear un volumen respaldo_bd_inversiones
+    - /Users/homesis/Documents/Desarrollo/inversiones/BasesDatos/BD_inversiones/DatosInversiones:/var/lib/postgresql/data
+  
+
+
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8003
+    container_name: web_inversiones
+    volumes: 
+      - .:/code
+    ports:
+      - "8003:8003"
+    depends_on:
+      - dbInversiones
+
+
+  

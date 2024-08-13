@@ -1,0 +1,66 @@
+from rest_framework import serializers
+from .models import Caja,ProveedorEquipo,ModoCompra,ModoPagoProveedor
+from .models import Presupuesto,FacturaEquipo,PagoFacturasEquipos
+from .models import Servicio, FacturaServicios, PagoFacturasServicios
+from .models import VariosF,FacturasVarios, PagoFacturasVarios
+from .models import Vehiculos,InsumoVehiculo,FacturasVehiculos,PagoFacturasVehiculos
+from .models import Colaboradores, PlanillaColaboradores,PagoPlanillaColaboradores
+from .models import PlanillaComisiones, PagoPlanillaComisiones
+        
+from inventario.serializers import EquipoSerializer
+class CajaSerializer(serializers.ModelSerializer):
+    value = serializers.CharField(source='id', read_only=True)
+    label = serializers.CharField(source='nombre', read_only=True)
+    class Meta:
+        model = Caja
+        fields = '__all__'
+        
+class ProveedorEquipoSerializer(serializers.ModelSerializer):
+    value = serializers.CharField(source='id', read_only=True)
+    label = serializers.CharField(source='nombre', read_only=True)
+    class Meta:
+        model = ProveedorEquipo
+        fields = '__all__'
+
+class ModoCompraSerializer(serializers.ModelSerializer):
+    value = serializers.CharField(source='id', read_only=True)
+    label = serializers.CharField(source='nombre', read_only=True)
+    class Meta:
+        model = ModoCompra
+        fields = '__all__'
+        
+class ModoPagoProveedorSerializer(serializers.ModelSerializer):
+    value = serializers.CharField(source='id', read_only=True)
+    label = serializers.CharField(source='nombre', read_only=True)
+    class Meta:
+        model = ModoPagoProveedor
+        fields = '__all__'
+
+
+class PresupuestoSerializer(serializers.ModelSerializer):
+    value = serializers.CharField(source='id', read_only=True)
+    label = serializers.CharField(source='nombre', read_only=True)
+    class Meta:
+        model = Presupuesto
+        fields = '__all__'
+        
+class PagoFacturaEquiposSerializer(serializers.ModelSerializer):
+    cajaName=serializers.CharField(source='caja', read_only=True)
+    class Meta:
+        model = PagoFacturasEquipos
+        fields = '__all__'
+
+
+class FacturaEquipoSerializer(serializers.ModelSerializer):
+    equipos = EquipoSerializer(many=True,read_only=True )
+    pagosFacturaEquipos = PagoFacturaEquiposSerializer(many=True,read_only=True )
+    proveedorName = serializers.CharField(source='proveedor', read_only=True)
+    modoCompraName = serializers.CharField(source='modoCompra', read_only=True)
+    inventarioName = serializers.CharField(source='get_inventario', read_only=True)
+    equiposIngresadosName=serializers.CharField(source='get_equiposIngresados', read_only=True)
+    presupuestoName=serializers.CharField(source='presupuesto', read_only=True)
+    
+    class Meta:
+        model = FacturaEquipo
+        fields = '__all__'
+
