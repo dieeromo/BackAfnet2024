@@ -49,6 +49,7 @@ class FacturaEquipo(models.Model):
     def actualizar_estado(self):
         self.pagado = self.abono >= self.valor
         self.save()
+        
     def __str__(self):
         return f'{self.proveedor} - {self.fecha_emision} desde {self.descripcion}'
     def get_inventario(self):

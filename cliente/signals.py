@@ -1,9 +1,9 @@
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save, pre_save, post_delete
 from django.dispatch import receiver
 from .models import ClienteVivienda, ClienteViviendaHistorico, PlanClienteVivienda, Upgrade
-from .models import Cliente, OrdenInstalacion
-
-
+from .models import Cliente, OrdenInstalacion, OrdenCobro, PagosPlanClienteVivienda
+from decimal import Decimal
+from django.db.models import Sum
 
 @receiver(post_save, sender=OrdenInstalacion)
 def create_Cliente(sender, instance, **kwargs):
@@ -138,3 +138,21 @@ def create_cliente_vivienda_historico(sender, instance, created, **kwargs):
             fecha_fin=instance.fecha_fin,
             digitador = instance.digitador
         )
+
+
+#### SIGNAS PARA PAGOS DE CLIENTES
+
+@receiver(post_save, sender=PagosPlanClienteVivienda)
+@receiver(post_delete, sender=PagosPlanClienteVivienda)
+def actualizar_valor_abonado(sender, instance, **kwargs):
+    orden = instance.orden_cobro
+    total_abonado = orden.pagosPlanClienteVivienda.aggregate(total_abonos=Sum('total_abono'))['total_abonos'] or 0
+    orden.valor_abonado = total_abonado
+    
+    # Actualizar el estado de la orden de cobro si ha sido pagada completamente
+    if orden.valor_abonado >= orden.valor_total:
+        orden.estado = 3  # Pagada
+    else:
+        orden.estado = 1  # Pendiente, si no ha sido completamente pagada
+    
+    orden.save()
