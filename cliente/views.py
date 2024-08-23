@@ -4,12 +4,18 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import TipoCliente,NacionalidadCliente,Ciudad,Barrio,Comunidad
 from .models import Cliente, Vivienda,ClienteVivienda, OrdenInstalacion
-from .models import PlanClienteVivienda, Plan, Upgrade
+from .models import PlanClienteVivienda, Plan, Upgrade, OrdenCobro
 
 from .serializers import TipoClienteSerializer,NacionalidadClienteSerializer,CiudadSerializer
 from .serializers import BarrioSerializer,ComunidadSerializer,ClienteSerializer,ViviendaSerializer
 from .serializers import ClienteViviendaSerializer, OrdenInstalacionSerializer
-from .serializers import PlanClienteViviendaSerializer, PlanSerializer, UpgradeSerializer
+from .serializers import PlanClienteViviendaSerializer, PlanSerializer, UpgradeSerializer, OrdenCobroSerializer
+
+
+class OrdenCobroViewSet(viewsets.ModelViewSet):
+    queryset = OrdenCobro.objects.all()
+    serializer_class = OrdenCobroSerializer
+    router = routers.DefaultRouter()
 
 
 class TipoClienteViewSet(viewsets.ModelViewSet):
@@ -74,7 +80,7 @@ class ViviendaViewSet(viewsets.ModelViewSet):
     router = routers.DefaultRouter()
     
 class ClienteViviendaViewSet(viewsets.ModelViewSet):
-    queryset = ClienteVivienda.objects.all()
+    queryset = ClienteVivienda.objects.all().order_by('-id')
     serializer_class = ClienteViviendaSerializer
     router = routers.DefaultRouter()
     
@@ -89,7 +95,7 @@ class GetOrdenes_estado(APIView):
     def get(self,request):
         data=[]
         estado = request.query_params.get('estado_instalacion', None)
-        ordenes = OrdenInstalacion.objects.filter(estado=estado)
+        ordenes = OrdenInstalacion.objects.filter(estado=estado).order_by('-id')
         for ordenes_i in ordenes:
             data.append({
                 'id': ordenes_i.id,
@@ -112,10 +118,8 @@ class GetClienteVivienda_cliente(APIView):
     def get(self,request):
         data=[]
         cliente_id = request.query_params.get('cliente_id', None)
-        CV = ClienteVivienda.objects.filter(cliente=cliente_id, fecha_fin=None)
+        CV = ClienteVivienda.objects.filter(cliente=cliente_id, fecha_fin=None).order_by('-id')
         for CV_i in CV:
-
-            
             data.append({
                 'id':CV_i.id,
                 'value':CV_i.id,
@@ -123,8 +127,12 @@ class GetClienteVivienda_cliente(APIView):
                 'vivienda_direccion':CV_i.vivienda.direccion,
                 'vivienda_coordenadas':CV_i.vivienda.coordenadas,
                 'vivienda_foto': str(CV_i.vivienda.foto) if  CV_i.vivienda else None,
+                'vivienda_foto2': str(CV_i.vivienda.foto2) if  CV_i.vivienda else None,
                 'vivienda_barrio':CV_i.vivienda.barrio.nombre if CV_i.vivienda.barrio else None,
+                'ciudadBarrio':CV_i.vivienda.barrio.ciudad.nombre if CV_i.vivienda.barrio else None,
                 'vivienda_comunidad': CV_i.vivienda.comunidad.nombre if CV_i.vivienda.comunidad else None,
+                'ciudadComunidad':CV_i.vivienda.comunidad.ciudad.nombre if CV_i.vivienda.comunidad else None,
+              
           
             })
         return Response(data)
@@ -141,7 +149,13 @@ class PlanViewSet(viewsets.ModelViewSet):
     serializer_class = PlanSerializer
     router = routers.DefaultRouter()
     
-    
+def descripcion_de_estadoServicio(estadoServivio):
+    estado=''
+    if estadoServivio == 1:
+        estado = 'Corriendo'
+    if estadoServivio == 2:
+        estado = 'Cortado'
+    return estado
 class GetPlan_ClienteVivienda_clienteVivienda(APIView):
     def get(self,request):
         data=[]
@@ -160,8 +174,10 @@ class GetPlan_ClienteVivienda_clienteVivienda(APIView):
                 'fecha_instalacion':planes_i.fecha_instalacion,
                 'fecha_pago':planes_i.fecha_pago,
                 'estado':planes_i.estado,
+                'estadoServcio':planes_i.estadoServicio,
+                'estadoServicioDescripcion': descripcion_de_estadoServicio(planes_i.estadoServicio),
                 'digitador':planes_i.digitador.first_name,
-
+                
           
             })
         return Response(data)

@@ -13,7 +13,13 @@ admin.site.register(ProveedorEquipo)
 admin.site.register(ModoCompra)
 admin.site.register(ModoPagoProveedor)
 admin.site.register(Presupuesto)
-admin.site.register(FacturaEquipo)
+
+
+class FacturaEquipoAdmin(admin.ModelAdmin):
+    list_display = ('fecha_emision', 'id','proveedor','numeroFactura', 'descripcion','valor','abono','pagado','inventario','equiposIngresados')
+admin.site.register(FacturaEquipo, FacturaEquipoAdmin)
+
+
 admin.site.register(PagoFacturasEquipos)
 
 

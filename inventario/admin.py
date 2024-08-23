@@ -6,6 +6,15 @@ from .models import EquipoInstalado
 admin.site.register(TipoEquipo)
 admin.site.register(Homologado)
 admin.site.register(Bodega)
-admin.site.register(Equipo)
+
 admin.site.register(EquipoMovimientoBodega)
-admin.site.register(EquipoInstalado)
+
+
+class EquipoInstaladoAdmin(admin.ModelAdmin):
+    list_display = ('id','equipo', 'planClienteVivienda', 'motivo','condicion','estado','observacion')
+admin.site.register(EquipoInstalado,EquipoInstaladoAdmin)
+
+
+class EquipoAdmin(admin.ModelAdmin):
+    list_display = ('id','homologado', 'serie', 'bodega','estado','estado2')
+admin.site.register(Equipo,EquipoAdmin)

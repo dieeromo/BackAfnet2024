@@ -34,6 +34,8 @@ class Comunidad(models.Model):
     ciudad = models.ForeignKey(Ciudad, related_name='comunidades', on_delete=models.CASCADE)
     def __str__(self):
         return self.nombre
+    def get_full_comunidad(self):
+        return "{} - {}".format(self.nombre, self.ciudad) 
     
 class OrdenInstalacion(models.Model):
     nombresApellidos = models.CharField(max_length=300)
@@ -76,9 +78,10 @@ class Vivienda(models.Model):
     coordenadas = models.CharField(max_length=100)  
     digitador = models.ForeignKey(UserAccount,on_delete=models.CASCADE)
     foto = models.ImageField(upload_to='fotos_vivienda/', blank=True, null=True)
+    foto2 = models.ImageField(upload_to='fotos_vivienda/', blank=True, null=True)
     
     def get_vivienda(self):
-        return "{} - {} - {}".format(self.barrio, self.comunidad, self.direccion) 
+        return "{}{} - {}".format(self.barrio if self.barrio else '', self.comunidad if self.comunidad else '', self.direccion) 
     def __str__(self):
         return f'V{self.id} - {self.barrio} - {self.comunidad} - {self.direccion}'
     
@@ -87,7 +90,7 @@ class Vivienda(models.Model):
     
 class ClienteVivienda(models.Model):
     cliente = models.ForeignKey(Cliente, related_name='clienteviviendas',  on_delete=models.CASCADE)
-    vivienda = models.ForeignKey(Vivienda,  on_delete=models.CASCADE)
+    vivienda = models.ForeignKey(Vivienda,on_delete=models.CASCADE)
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField(null=True, blank=True)
 
@@ -99,7 +102,7 @@ class ClienteVivienda(models.Model):
     
 class ClienteViviendaHistorico(models.Model):
     clienteVivienda = models.ForeignKey(ClienteVivienda,   on_delete=models.CASCADE)
-    cliente = models.ForeignKey(Cliente,   on_delete=models.CASCADE)
+    cliente = models.ForeignKey(Cliente,  on_delete=models.CASCADE)
     vivienda = models.ForeignKey(Vivienda,  on_delete=models.CASCADE)
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField(null=True, blank=True)
@@ -140,7 +143,7 @@ class PlanClienteVivienda(models.Model):
     
     
 class Upgrade(models.Model):
-    planClienteVivienda = models.ForeignKey(PlanClienteVivienda,  on_delete=models.CASCADE)
+    planClienteVivienda = models.ForeignKey(PlanClienteVivienda, related_name='upgrades', on_delete=models.CASCADE)
     plan_upgrade = models.ForeignKey(Plan,  on_delete=models.CASCADE)
     fecha= models.DateField()
 
@@ -165,16 +168,50 @@ class OrdenCobro(models.Model):
         return f'Orden de Cobro #{self.id} - PCV:{self.planClienteVivienda.id}'
 
     def calcular_valores(self):
+        # estado: 1 activo  estadoServcio: 1 Corriendo
         if self.planClienteVivienda.estado == 1 and self.planClienteVivienda.estadoServicio == 1:
+            
+                   # Obtenemos el primer día del mes y el último día del mes
+            primer_dia_mes = self.fecha_generacion.replace(day=1)
+            ultimo_dia_mes = (primer_dia_mes + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+            dias_del_mes = (ultimo_dia_mes - primer_dia_mes).days + 1
 
-            self.valor_subtotal = self.planClienteVivienda.plan.valor
+            
+            fecha_ultimoDia_mesPasado = primer_dia_mes - timedelta(days=1)
+            fecha_primerDia_mesPasado  = fecha_ultimoDia_mesPasado.replace(day=1)
+        
+            print('fecha_ultimoDia_mesPasado  ', fecha_ultimoDia_mesPasado)
+            print('fecha_primerDia_mesPasado  ', fecha_primerDia_mesPasado)
+            dias_mes_pasado= (fecha_ultimoDia_mesPasado - fecha_primerDia_mesPasado ).days + 1
+            print('# dias mes pasado', dias_mes_pasado)
+            dias_corridos = 0
+            
+            if (self.planClienteVivienda.fecha_instalacion >= fecha_primerDia_mesPasado) & (self.planClienteVivienda.fecha_instalacion<=fecha_ultimoDia_mesPasado):
+                print("la instalacion fue en el mes pasado")
+                dias_corridos = (fecha_ultimoDia_mesPasado - self.planClienteVivienda.fecha_instalacion).days + 1
+                print("dias corridos", dias_corridos)
+            else:
+                print("la instalacion fue en otro mes")
+                dias_corridos = (fecha_ultimoDia_mesPasado - fecha_primerDia_mesPasado).days + 1
+                print("dias corridos", dias_corridos)
+                
+            print(" ----   -----    -----    ---- ")
+            
+            self.valor_subtotal = (self.planClienteVivienda.plan.valor / dias_mes_pasado) * dias_corridos
             self.valor_iva = self.valor_subtotal * 0.15  # Supone un IVA del 15%
-            self.valor_total = float(self.valor_subtotal + self.valor_iva)
-        else:
+            self.valor_total = round(self.valor_subtotal + self.valor_iva, 2)
+            self.save()
+            
+            #estado: 2 Suspendido  y estadoservicio: 1 corriendo
+        elif  self.planClienteVivienda.estado == 2 and self.planClienteVivienda.estadoServicio == 1:            
             self.valor_subtotal = 0
             self.valor_iva = 0
             self.valor_total = 0
-        self.save()
+            self.save()
+            
+            #2 y 2 no genera, significa que no cancelo esta suspendido y cortado
+            
+            # en los demas casos no se genera
         
     def actualizar_abono(self, abono):
         self.valor_abonado += abono
@@ -217,12 +254,13 @@ class OrdenCobro(models.Model):
 class PagosPlanClienteVivienda(models.Model):
     orden_cobro = models.ForeignKey(OrdenCobro,related_name='pagosPlanClienteVivienda' , on_delete=models.CASCADE)
     caja = models.ForeignKey(Caja, on_delete=models.CASCADE)
-    fecha_pago = models.DateField()
+    fecha_pago = models.DateTimeField(auto_now_add=True)
 
     subtotal_abono = models.FloatField()
     iva_abono = models.FloatField()
     total_abono = models.FloatField()
     observacion = models.TextField(blank=True, null=True)
+    tipo_pago = models.IntegerField(choices=[(1, 'Efectivo'), (2, 'Transferncia'), (3, 'Deposito')], default=1)
 
     def __str__(self):
         return f'Pago #{self.id} - OrdenCobro:{self.orden_cobro.id} - Abono: {self.total_abono}'

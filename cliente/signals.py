@@ -18,103 +18,41 @@ def create_Cliente(sender, instance, **kwargs):
             digitador = instance.digitador
         )
         
+        
+### para el upgrade
+@receiver(pre_save, sender=PlanClienteVivienda)
+def obtener_plan_anterior(sender, instance, **kwargs):
+    if instance.pk:
+        # Obtener el plan actual antes de que se guarde la instancia
+        instance._plan_anterior = PlanClienteVivienda.objects.get(pk=instance.pk).plan
+    else:
+        instance._plan_anterior = None
+
 @receiver(post_save, sender=PlanClienteVivienda)
-def create_upgrade(sender, instance, created, **kwargs):
-    Upgrade.objects.create(
-        planClienteVivienda=instance,
-        plan_upgrade=instance.plan,
-        fecha=instance.fecha_instalacion,
-    )
-    if not created:
+def crear_upgrade(sender, instance, created, **kwargs):
+    print('signalssssssssss sss  sss sss sss')
+    if created:
+        # Si la entrada es nueva (es decir, se acaba de crear)
         Upgrade.objects.create(
             planClienteVivienda=instance,
             plan_upgrade=instance.plan,
-            fecha=instance.fecha_instalacion,
+            fecha=instance.fecha_instalacion
         )
-######
+    else:
+        # Si la entrada ya existía y se actualiza
+        previous_plan = PlanClienteVivienda.objects.get(pk=instance.pk).plan
+        print('instance plan', instance.plan)
+        print('previos plan', instance._plan_anterior)
+        if instance.plan != instance._plan_anterior:
+            print('si ingresa a crear')
+            Upgrade.objects.create(
+                planClienteVivienda=instance,
+                plan_upgrade=instance.plan,
+                fecha=instance.fecha_instalacion
+            )
 
 
 ###############################
-# @receiver(pre_save, sender=PlanClienteVivienda)
-# def check_plan_upgrade_change(sender, instance, **kwargs):
-#     if instance.pk:
-#         old_instance = PlanClienteVivienda.objects.get(pk=instance.pk)
-#         if old_instance.plan != instance.plan:
-#             instance.plan_changed = True
-#         else:
-#             instance.plan_changed = False
-
-# @receiver(post_save, sender=PlanClienteVivienda)
-# def create_or_update_upgrade(sender, instance, created, **kwargs):
-#     if created:
-#         Upgrade.objects.create(
-#             planClienteVivienda=instance,
-#             plan_upgrade=instance.plan,
-#             fecha=instance.fecha_instalacion,
-#         )
-#     else:
-#         if hasattr(instance, 'plan_changed') and instance.plan_changed:
-#             Upgrade.objects.create(
-#                 planClienteVivienda=instance,
-#                 plan_upgrade=instance.plan,
-#                 fecha=instance.fecha_instalacion,
-#             )
-#         else:
-#             Upgrade.objects.update_or_create(
-#                 planClienteVivienda=instance,
-#                 defaults={
-#                     'plan_upgrade': instance.plan,
-#                     'fecha': instance.fecha_instalacion,
-#                 }
-#            )
-
-###############
-
-# @receiver(pre_save, sender=PlanClienteVivienda)
-# def check_plan_upgrade_change(sender, instance, **kwargs):
-#     if instance.pk:
-#         old_instance = PlanClienteVivienda.objects.get(pk=instance.pk)
-#         # Check if the plan has changed
-#         if old_instance.plan != instance.plan:
-#             instance.plan_changed = True
-#         else:
-#             instance.plan_changed = False
-#     else:
-#         instance.plan_changed = False
-
-# @receiver(post_save, sender=PlanClienteVivienda)
-# def create_or_update_upgrade(sender, instance, created, **kwargs):
-#     if created:
-#         Upgrade.objects.create(
-#             planClienteVivienda=instance,
-#             plan_upgrade=instance.plan,
-#             fecha=instance.fecha_instalacion,
-#         )
-#     else:
-#         if hasattr(instance, 'plan_changed') and instance.plan_changed:
-#             Upgrade.objects.create(
-#                 planClienteVivienda=instance,
-#                 plan_upgrade=instance.plan,
-#                 fecha=instance.fecha_instalacion,
-#             )
-
-# # Handle updates separately to ensure only the correct fields are monitored
-# @receiver(pre_save, sender=PlanClienteVivienda)
-# def update_upgrade_on_change(sender, instance, **kwargs):
-#     if instance.pk:
-#         old_instance = PlanClienteVivienda.objects.get(pk=instance.pk)
-#         # Only update Upgrade if plan has changed
-#         if old_instance.plan != instance.plan:
-#             Upgrade.objects.update_or_create(
-#                 planClienteVivienda=instance,
-#                 defaults={
-#                     'plan_upgrade': instance.plan,
-#                     'fecha': instance.fecha_instalacion,
-#                 }
-#             )
-
-
-########################
 
 
 
@@ -141,7 +79,6 @@ def create_cliente_vivienda_historico(sender, instance, created, **kwargs):
 
 
 #### SIGNAS PARA PAGOS DE CLIENTES
-
 @receiver(post_save, sender=PagosPlanClienteVivienda)
 @receiver(post_delete, sender=PagosPlanClienteVivienda)
 def actualizar_valor_abonado(sender, instance, **kwargs):

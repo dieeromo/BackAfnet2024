@@ -29,17 +29,27 @@ class EquipoSerializer(serializers.ModelSerializer):
     bodegaName = serializers.CharField(source='bodega.nombre', read_only=True)
     value = serializers.CharField(source='id', read_only=True)
     label = serializers.CharField(source='get_infoEquipo', read_only=True)
+    estadoDescripcion = serializers.SerializerMethodField()
     class Meta:
         model = Equipo
         fields = '__all__'
+    def get_estadoDescripcion(self, obj):
+        return obj.get_estado_display()
         
 class EquipoMovimientoBodegaSerializer(serializers.ModelSerializer):
+    equipoHomologado = serializers.CharField(source='equipo.homologado.nombre', read_only=True)
+    equipoSerie = serializers.CharField(source='equipo.serie', read_only=True)
+    bodegaName = serializers.CharField(source='bodega.nombre', read_only=True)
     class Meta:
         model = EquipoMovimientoBodega
         fields = '__all__'
         
 class EquipoInstaladoSerializer(serializers.ModelSerializer):
     equipoInfo = serializers.CharField(source='get_infoEquipo', read_only=True)
+    clienteName =serializers.CharField(source='planClienteVivienda.clienteVivienda.cliente.nombresApellidos', read_only=True)
+    planName =serializers.CharField(source='planClienteVivienda.plan.nombre', read_only=True)
+    direccionName =serializers.CharField(source='planClienteVivienda.clienteVivienda.vivienda.get_vivienda', read_only=True)
+    diasInstalado = serializers.CharField(source='dias_instalacion', read_only=True)
     class Meta:
         model = EquipoInstalado
         fields = '__all__'

@@ -2,6 +2,8 @@ from django.shortcuts import render
 from rest_framework import viewsets, routers
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import generics, filters
+from rest_framework.pagination import PageNumberPagination
 
 from .models import Caja,ProveedorEquipo,ModoCompra,ModoPagoProveedor
 from .models import Presupuesto,FacturaEquipo,PagoFacturasEquipos
@@ -36,14 +38,38 @@ class PresupuestoViewSet(viewsets.ModelViewSet):
     serializer_class = PresupuestoSerializer
     router = routers.DefaultRouter()
 
-class FacturaEquipoViewSet(viewsets.ModelViewSet):
+
+
+class FacturasPagination(PageNumberPagination):  ## para todos
+    page_size = 100
+    page_size_query_param = 'page_size'
+    max_page_size = 2000
+
+
+### FACTURAS EQUIPOS
+
+
+class FacturaEquipoViewSet(viewsets.ModelViewSet):  #CRUD
     queryset = FacturaEquipo.objects.all().order_by('-id')
     serializer_class = FacturaEquipoSerializer
     router = routers.DefaultRouter()
     
-class PagoFacturaEquipoViewSet(viewsets.ModelViewSet):
+class Get_FacturaEquip_View(generics.ListAPIView):
+    queryset = FacturaEquipo.objects.all().order_by('-id')
+    serializer_class = FacturaEquipoSerializer
+    pagination_class = FacturasPagination
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['numeroFactura','descripcion',]  #
+    
+    
+    
+class PagoFacturaEquipoViewSet(viewsets.ModelViewSet):  #CRUD
     queryset = PagoFacturasEquipos.objects.all()
     serializer_class = PagoFacturaEquiposSerializer
     router = routers.DefaultRouter()
+    
+    
+    
+
 
 

@@ -2,6 +2,7 @@ from django.shortcuts import render
 from rest_framework import viewsets, routers
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from datetime import datetime
 
 from .models import TipoEquipo,Homologado,Bodega,Equipo
 from .models import EquipoMovimientoBodega,EquipoInstalado
@@ -43,6 +44,7 @@ class EquipoMovimientoBodegaViewSet(viewsets.ModelViewSet):
     serializer_class = EquipoMovimientoBodegaSerializer
     router = routers.DefaultRouter()
 
+
 class EquipoInstaladoViewSet(viewsets.ModelViewSet):
     queryset = EquipoInstalado.objects.all()
     serializer_class = EquipoInstaladoSerializer
@@ -53,12 +55,16 @@ class GetEquipoInstaladoActivo_Plan(APIView):
         data=[]
         planClienteVivienda_id = request.query_params.get('plan_cliente_vivienda_id', None)
         equipos = EquipoInstalado.objects.filter(planClienteVivienda=planClienteVivienda_id,estado=1)
+        fecha_actual = datetime.now().date()
         for equipos_i in equipos:
             data.append({
-                'nombreName':equipos_i.equipo.homologado.nombre +" "+ equipos_i.equipo.serie,
+                'nombreName':equipos_i.equipo.homologado.nombre,
+                'nombreSerie':equipos_i.equipo.serie,
                 'estado':equipos_i.estado, # estado activo inactivo
                 'condicion_equipo': equipos_i.equipo.estado,
                 'id':equipos_i.id,
-                'fecha_instalacion':equipos_i.fecha_instalacion
+                'fecha_instalacion':equipos_i.fecha_instalacion,
+                'equipoID':equipos_i.equipo.id,
+                'diasFuncionando':(fecha_actual-equipos_i.fecha_instalacion).days,
             })
         return Response(data)
