@@ -48,7 +48,8 @@ INSTALLED_APPS = [
     'cliente',
     'inversionesEmpresa',
     'inventario',
-    'contabilidad'
+    'contabilidad',
+    'fibraOptica'
 ]
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3003',
