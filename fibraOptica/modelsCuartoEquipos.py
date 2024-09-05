@@ -45,4 +45,4 @@ class TrazoPachcord(models.Model):
     fecha_instalacion = models.DateField( null=True, blank=True )
     verificado = models.IntegerField(choices=[(1, 'No'), (2, 'Si')], default=1)
     def __str__(self):
-        return f'sal:{self.sal_puertoTarjeta} - lleg:{self.lleg_puertoODF} - {self.fecha_instalacion}'
+        return f'{self.lleg_puertoODF} '
