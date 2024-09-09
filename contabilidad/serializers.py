@@ -64,3 +64,25 @@ class FacturaEquipoSerializer(serializers.ModelSerializer):
         model = FacturaEquipo
         fields = '__all__'
 
+
+class ServicioSerializer(serializers.ModelSerializer):
+    value = serializers.CharField(source='id', read_only=True)
+    label = serializers.CharField(source='nombre', read_only=True)
+    class Meta:
+        model = Servicio
+        fields = '__all__'
+        
+        
+
+class PagoFacturaServicioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PagoFacturasServicios
+        fields = '__all__'
+        
+class FacturaServicioSerializer(serializers.ModelSerializer):
+    pagosServicios = PagoFacturaServicioSerializer(many=True,read_only=True )
+    class Meta:
+        model = FacturaServicios
+        fields = '__all__'
+        
+

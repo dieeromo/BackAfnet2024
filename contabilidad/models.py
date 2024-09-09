@@ -93,20 +93,32 @@ class Servicio(models.Model):
 class FacturaServicios(models.Model):
     proveedor = models.ForeignKey(ProveedorEquipo,  on_delete=models.CASCADE)
     servicio = models.ForeignKey(Servicio,  on_delete=models.CASCADE)
-    mes_pago= models.DateField()
+    mes_pago= models.DateField() #en el front que se pueda escoger solo el mes y año y aqui se guarda con el primero de ese mes
     fecha_emision= models.DateField()
     fecha_limite_pago= models.DateField(null=True, blank=True) 
-    numeroFactura = models.CharField(max_length=300, null=True, blank=True)
+    numeroFactura = models.CharField(max_length=300, null=True, blank=True, unique=True)  # SE GENERA AUTOMATICAMENTE
     descripcion = models.CharField(max_length=300, null=True, blank=True)
     valor = models.DecimalField(max_digits=10, decimal_places=2)
-    abono= models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    pagado = models.BooleanField(default=False)
+    abono= models.DecimalField(max_digits=10, decimal_places=2, default=0) #SE PONE AUTOMATICAMEN
+    pagado = models.BooleanField(default=False) #SE PONE AUTOMATICAMENTE
     
     modoCompra = models.ForeignKey(ModoCompra,  on_delete=models.CASCADE)
 
     presupuesto = models.ForeignKey(Presupuesto,  on_delete=models.CASCADE)
     digitador = models.ForeignKey(UserAccount,  on_delete=models.CASCADE)
     observacion = models.CharField(max_length=300, null=True, blank=True)
+    
+    def save(self, *args, **kwargs):
+        if not self.numeroFactura:  # Solo generar si el número de factura no existe
+            last_invoice = FacturaServicios.objects.filter(servicio=self.servicio).order_by('id').last()
+            if last_invoice:
+                # Extraer el número de la última factura para ese servicio
+                last_number = int(last_invoice.numeroFactura.split('-')[-1])
+                new_number = last_number + 1
+            else:
+                new_number = 1  # Primera factura para este servicio
+            self.numeroFactura = f"{self.servicio.nombre}-{new_number:03d}"
+        super().save(*args, **kwargs)
     
     def actualizar_estado(self):
         self.pagado = self.abono >= self.valor

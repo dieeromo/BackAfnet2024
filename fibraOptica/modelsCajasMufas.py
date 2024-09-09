@@ -4,7 +4,7 @@ from cliente.models import Barrio, Comunidad
 
 
 
-class Mufa(models.Model):
+class MufaNA(models.Model):
     barrio = models.ForeignKey(Barrio,blank=True, null=True, on_delete=models.CASCADE)
     comunidad = models.ForeignKey(Comunidad, blank=True, null=True, on_delete=models.CASCADE)
     numero = models.IntegerField()
@@ -18,10 +18,11 @@ class Mufa(models.Model):
         return f'mufa:{self.numero} - dir:{self.barrio}{self.comunidad}'
     
     
-class CajaNap(models.Model):
-    mufa = models.ForeignKey(Mufa, on_delete=models.CASCADE)
+class CajaNapNA(models.Model):
+    mufa = models.ForeignKey(MufaNA, on_delete=models.CASCADE)
     barrio = models.ForeignKey(Barrio,blank=True, null=True, on_delete=models.CASCADE)
     comunidad = models.ForeignKey(Comunidad, blank=True, null=True, on_delete=models.CASCADE)
+    
     numeroNap = models.IntegerField()
     nombreNap = models.CharField(max_length=300, null=True, blank=True)
     splitter = models.IntegerField(null=True, blank=True)

@@ -1,14 +1,14 @@
 from django.db import models
 from accounts.models import UserAccount
 
-class TipoFibra(models.Model):
+class TipoFibraNA(models.Model):
     nombre = models.CharField(max_length=300)
     def __str__(self):
         return f'{self.nombre} '
 
 
-class Fibra(models.Model):
-    tipoFibra = models.ForeignKey(TipoFibra, on_delete=models.CASCADE)
+class FibraNA(models.Model):
+    tipoFibra = models.ForeignKey(TipoFibraNA, on_delete=models.CASCADE)
     nombre = models.CharField(max_length=300)
     numeroBuffers = models.IntegerField()
     numeroHilos = models.IntegerField()
@@ -16,21 +16,21 @@ class Fibra(models.Model):
         return f'{self.tipoFibra} - {self.nombre} - b:{self.numeroBuffers} h:{self.numeroHilos}'
 
 
-class Ruta(models.Model):
+class RutaNA(models.Model):
     nombre = models.CharField(max_length=300)
-    fibra = models.ForeignKey(Fibra, on_delete=models.CASCADE)
+    fibra = models.ForeignKey(FibraNA, on_delete=models.CASCADE)
     def __str__(self):
         return self.nombre
     
-class Buffer(models.Model):
+class BufferNA(models.Model):
     nombre = models.CharField(max_length=300)
     def __str__(self):
         return self.nombre
     
-class Hilo(models.Model):
+class HiloNA(models.Model):
     nombre = models.CharField(max_length=300)
-    buffer= models.ForeignKey(Buffer, on_delete=models.CASCADE)
-    fibra= models.ForeignKey(Fibra, on_delete=models.CASCADE) ####### MAL
+    buffer= models.ForeignKey(BufferNA, on_delete=models.CASCADE)
+    fibra= models.ForeignKey(FibraNA, on_delete=models.CASCADE) ####### MAL
     def __str__(self):
         return self.nombre
     
