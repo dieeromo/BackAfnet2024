@@ -31,7 +31,8 @@ urlpatterns = [
     path('contabilidad/', include('contabilidad.urls')),
     path('inventario/', include('inventario.urls')),
    
-     path('infraestructura_fo/', include('infraestructuraFO.urls')),
+    path('infraestructura_fo/', include('infraestructuraFO.urls')),
+    path('mikrotik/', include('mikrotik.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

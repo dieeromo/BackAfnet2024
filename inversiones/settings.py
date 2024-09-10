@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'contabilidad',
     'fibraOptica',
     'infraestructuraFO',
+    'mikrotik',
     
 ]
 CORS_ALLOWED_ORIGINS = [
