@@ -39,7 +39,7 @@ class PlanAdmin(admin.ModelAdmin):
 admin.site.register(Plan,PlanAdmin)
 
 class OrdenCobroAdmin(admin.ModelAdmin):
-    list_display = ('planClienteVivienda', 'fecha_generacion', 'fecha_vencimiento', 'valor_total','valor_subtotal','valor_iva','valor_abonado' ,'estado')
+    list_display = ('planClienteVivienda','plan','mes_pago_servicio','dias_consumo', 'fecha_generacion', 'fecha_vencimiento', 'valor_total','valor_subtotal','valor_iva','valor_abonado' ,'estado')
     @admin.action(description='Generar órdenes de cobro para el mes actual')
     def generar_ordenes_cobro(self, request, queryset):
         OrdenCobro.generar_ordenes_de_cobro()

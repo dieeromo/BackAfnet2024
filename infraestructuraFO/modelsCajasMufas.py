@@ -1,6 +1,6 @@
 from django.db import models
 from cliente.models import Barrio, Comunidad
-
+from .modelsCuarto import PuertoTarjeta
 
 
 
@@ -19,6 +19,7 @@ class Mufa(models.Model):
     coordenadas = models.CharField(max_length=300, null=True, blank=True)
     
     verificado = models.IntegerField(choices=[(0, 'No'), (1, 'Si')], default=0)
+    puerto_olt = models.ForeignKey(PuertoTarjeta,null=True, blank=True,on_delete=models.CASCADE)
     def __str__(self):
         return f'{self.numero}'
 

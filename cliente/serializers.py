@@ -175,12 +175,16 @@ def numeroAmes(mes):
 class OrdenCobroSerializer(serializers.ModelSerializer):
     pagosPlanClienteVivienda = PagosPlanClienteViviendaSerializer(many=True,read_only=True ) 
     mes_pago= serializers.SerializerMethodField()
+    anio_pago= serializers.SerializerMethodField()
     class Meta:
         model = OrdenCobro
         fields = '__all__'
     def get_mes_pago(self, obj):
-        mes = obj.fecha_generacion.month
-
+        mes = obj.mes_pago_servicio.month
         return numeroAmes(mes)
+    
+    def get_anio_pago(self, obj):
+        anio = obj.fecha_generacion.year
+        return anio
         
         

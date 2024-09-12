@@ -127,11 +127,13 @@ class PlanClienteVivienda(models.Model):
     clienteVivienda = models.ForeignKey(ClienteVivienda,  on_delete=models.CASCADE)
     plan = models.ForeignKey(Plan,  on_delete=models.CASCADE)
     fecha_instalacion = models.DateField()
+    fecha_upgrade = models.DateField(blank=True,null=True)
     fecha_desinstalacion = models.DateField(blank=True, null=True)
     fecha_pago = models.DateField()
     estado = models.IntegerField(choices=[(1, 'Activo'), (2, 'Suspendido'),(3, 'Retirado'),(4, 'Upgrade')], default=1)
     estadoServicio = models.IntegerField(choices=[(1, 'Corriendo'), (2, 'Cortado')], default=1)
     estadoEquipos = models.IntegerField(choices=[(1, 'Funcionando'), (2, 'Por retirar'), (3, 'Retirados'),(4, 'Reseteados por retirados'),], default=1)
+    estadoGeneracionPagos = models.IntegerField(choices=[(0, 'No generado'), (1, 'Generado')], default=0)
     #Activo: estado normal
     #Suspendido: Cuando el cliente suspende por un par de meses
     #Cortado: Cuando el cliente se retrasa de pagar
@@ -153,7 +155,10 @@ class Upgrade(models.Model):
 #########################
 class OrdenCobro(models.Model):
     planClienteVivienda = models.ForeignKey(PlanClienteVivienda, on_delete=models.CASCADE)
+    plan = models.ForeignKey(Plan,null=True, blank=True , on_delete=models.CASCADE)
     fecha_generacion = models.DateField()
+    mes_pago_servicio = models.DateField(null=True, blank=True)
+    dias_consumo = models.IntegerField(null=True, blank=True)
     fecha_gen_sis = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     fecha_vencimiento = models.DateField()
     valor_subtotal = models.FloatField()
@@ -169,34 +174,36 @@ class OrdenCobro(models.Model):
 
     def calcular_valores(self):
         # estado: 1 activo  estadoServcio: 1 Corriendo
-        if self.planClienteVivienda.estado == 1 and self.planClienteVivienda.estadoServicio == 1:
-            
+        if self.planClienteVivienda.estado == 1 and self.planClienteVivienda.estadoServicio == 1 and self.planClienteVivienda.estadoGeneracionPagos == 0:
                    # Obtenemos el primer día del mes y el último día del mes
             primer_dia_mes = self.fecha_generacion.replace(day=1)
-            ultimo_dia_mes = (primer_dia_mes + timedelta(days=32)).replace(day=1) - timedelta(days=1)
-            dias_del_mes = (ultimo_dia_mes - primer_dia_mes).days + 1
-
             
+            ultimo_dia_mes = (primer_dia_mes + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+            #dias_del_mes = (ultimo_dia_mes - primer_dia_mes).days + 1
+
             fecha_ultimoDia_mesPasado = primer_dia_mes - timedelta(days=1)
             fecha_primerDia_mesPasado  = fecha_ultimoDia_mesPasado.replace(day=1)
         
-            print('fecha_ultimoDia_mesPasado  ', fecha_ultimoDia_mesPasado)
-            print('fecha_primerDia_mesPasado  ', fecha_primerDia_mesPasado)
-            dias_mes_pasado= (fecha_ultimoDia_mesPasado - fecha_primerDia_mesPasado ).days + 1
-            print('# dias mes pasado', dias_mes_pasado)
+
+            dias_mes_pasado= (fecha_ultimoDia_mesPasado - fecha_primerDia_mesPasado ).days 
             dias_corridos = 0
             
-            if (self.planClienteVivienda.fecha_instalacion >= fecha_primerDia_mesPasado) & (self.planClienteVivienda.fecha_instalacion<=fecha_ultimoDia_mesPasado):
-                print("la instalacion fue en el mes pasado")
-                dias_corridos = (fecha_ultimoDia_mesPasado - self.planClienteVivienda.fecha_instalacion).days + 1
-                print("dias corridos", dias_corridos)
-            else:
-                print("la instalacion fue en otro mes")
-                dias_corridos = (fecha_ultimoDia_mesPasado - fecha_primerDia_mesPasado).days + 1
-                print("dias corridos", dias_corridos)
+            if (self.planClienteVivienda.fecha_upgrade): # verficia si hay algun cambio de plan
+         
+                if(self.planClienteVivienda.fecha_upgrade.month == fecha_ultimoDia_mesPasado.month):
+                    dias_corridos = (fecha_ultimoDia_mesPasado - self.planClienteVivienda.fecha_upgrade).days 
+                else :
+                    dias_corridos = (fecha_ultimoDia_mesPasado - fecha_primerDia_mesPasado).days 
+                
+            else :
+                if (self.planClienteVivienda.fecha_instalacion.month == fecha_ultimoDia_mesPasado.month):
+                     dias_corridos = (fecha_ultimoDia_mesPasado - self.planClienteVivienda.fecha_instalacion).days 
+                else:
+                    dias_corridos = (fecha_ultimoDia_mesPasado - fecha_primerDia_mesPasado).days 
+
                 
             print(" ----   -----    -----    ---- ")
-            
+            self.dias_consumo =   dias_corridos
             self.valor_subtotal = (self.planClienteVivienda.plan.valor / dias_mes_pasado) * dias_corridos
             self.valor_iva = self.valor_subtotal * 0.15  # Supone un IVA del 15%
             self.valor_total = round(self.valor_subtotal + self.valor_iva, 2)
@@ -229,15 +236,21 @@ class OrdenCobro(models.Model):
         primer_dia_mes = hoy.replace(day=1)
         fecha_vencimiento = primer_dia_mes + timedelta(days=9)
         plan_cliente_viviendas = PlanClienteVivienda.objects.filter(estado=1, estadoServicio=1)
-        
         for pcv in plan_cliente_viviendas:
-            orden = OrdenCobro(
-                planClienteVivienda=pcv,
-                fecha_generacion=primer_dia_mes,
-                fecha_vencimiento=fecha_vencimiento,
-            )
-            orden.calcular_valores()
-            orden.save()
+            if pcv.estadoGeneracionPagos == 0:
+                orden = OrdenCobro(
+                    planClienteVivienda=pcv,
+                    mes_pago_servicio = (primer_dia_mes - timedelta(days=1)).replace(day=1),
+                    fecha_generacion=primer_dia_mes,
+                    fecha_vencimiento=fecha_vencimiento,
+                    plan = pcv.plan,
+                )
+                orden.calcular_valores()
+                orden.save()
+        for pcv1 in plan_cliente_viviendas:
+            pcv1.estadoGeneracionPagos = 0
+            pcv1.save()
+
     
     @staticmethod
     def actualizar_estados_de_ordenes():

@@ -9,7 +9,7 @@ from .views import PlanViewSet, GetPlan_ClienteVivienda_clienteVivienda, Upgrade
 
 from .views2 import ClienteListFilterView,GetOrdenCobro_clienteVivienda_sinPagar
 from .views2 import GetPagosPlanClienteVivienda_View, PagosPlanClienteViviendaViewSet, getOrdenesPagadas_planClienteVivienda
-
+from .views2 import generar_ordenes_cobro_view
 
 router = DefaultRouter()
 router.register(r'tipo', TipoClienteViewSet)
@@ -43,6 +43,9 @@ urlpatterns = [
     path('get_ordenes_pagadas_plancliente/<int:id>/', getOrdenesPagadas_planClienteVivienda),
     path('cliente_filter/', ClienteListFilterView.as_view(),),
     path('get_pagos_plan_cliente_vivienda/', GetPagosPlanClienteVivienda_View.as_view(),),
+    
+    ## ojo solo para ordenes de cobro
+    path('generar-ordenes-cobro/', generar_ordenes_cobro_view, name='generar_ordenes_cobro'),
     
     
 ]

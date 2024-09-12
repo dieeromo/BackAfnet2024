@@ -8,7 +8,11 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.decorators import login_required
 
 
-from .models import Cliente, OrdenCobro, PagosPlanClienteVivienda
+from django.http import JsonResponse
+
+
+
+from .models import Cliente, OrdenCobro, PagosPlanClienteVivienda, PlanClienteVivienda
 from .serializers import ClienteSerializer, OrdenCobroSerializer
 from .serializers import PagosPlanClienteViviendaSerializer
 
@@ -63,7 +67,7 @@ class GetOrdenCobro_clienteVivienda_sinPagar(APIView):
         for ordenes_i in ordenes:
             data.append({
                 'id':ordenes_i.id,
-                'planClienteVivienda':ordenes_i.planClienteVivienda.plan.nombre,
+                'planClienteVivienda':ordenes_i.planClienteVivienda.plan.nombre, # OJO este cambia cada que se cambie de plan
                 'valor_subtotal': ordenes_i.valor_subtotal,
                 'valor_iva': round( ordenes_i.valor_iva , 2),
                 'valor_total':ordenes_i.valor_total,
@@ -71,7 +75,10 @@ class GetOrdenCobro_clienteVivienda_sinPagar(APIView):
                 'valor_pendiente': round( ordenes_i.valor_total - ordenes_i.valor_abonado, 2),
                 'dias_extras':ordenes_i.dias_extras,
                 'ejecucion_dias_extras':ordenes_i.ejecucion_dias_extras,
-                'mes':numeroAmes( ordenes_i.fecha_generacion.month)
+                'mes': numeroAmes( ordenes_i.mes_pago_servicio.month),
+                'anio':ordenes_i.mes_pago_servicio.year,
+                'dias_consumo': ordenes_i.dias_consumo,
+                'plan':ordenes_i.plan.nombre, # este se mantiene fijo cuando se genero la orden
             })
         return Response(data)
     
@@ -105,3 +112,23 @@ def getOrdenesPagadas_planClienteVivienda(request,id):
     return Response(serializer.data)
 
 
+
+
+
+
+
+def generar_ordenes_cobro_view(request):
+    OrdenCobro.generar_ordenes_de_cobro()
+    return JsonResponse({"message": "Órdenes de cobro generadas exitosamente."})
+
+
+# @api_view(['POST'])
+# def generar_ordenes_cobro_individual_view(request):
+#     data = request.data 
+    
+#     planClienteVivienda_id = data['planClienteVivienda_id']
+#     fecha_inicio = data['fecha_inico']
+#     fecha_fin = data['fecha_fin']
+    
+#     planCliente = PlanClienteVivienda.objects.filter(id=planClienteVivienda_id)
+#     return JsonResponse({"message": "Órdenes de cobro generadas exitosamente."})

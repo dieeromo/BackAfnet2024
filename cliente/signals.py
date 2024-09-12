@@ -36,7 +36,7 @@ def crear_upgrade(sender, instance, created, **kwargs):
         Upgrade.objects.create(
             planClienteVivienda=instance,
             plan_upgrade=instance.plan,
-            fecha=instance.fecha_instalacion
+            fecha=instance.fecha_upgrade
         )
     else:
         # Si la entrada ya existía y se actualiza
@@ -48,7 +48,7 @@ def crear_upgrade(sender, instance, created, **kwargs):
             Upgrade.objects.create(
                 planClienteVivienda=instance,
                 plan_upgrade=instance.plan,
-                fecha=instance.fecha_instalacion
+                fecha=instance.fecha_upgrade
             )
 
 

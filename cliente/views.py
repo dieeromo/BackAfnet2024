@@ -177,6 +177,7 @@ class GetPlan_ClienteVivienda_clienteVivienda(APIView):
                 'estadoServcio':planes_i.estadoServicio,
                 'estadoServicioDescripcion': descripcion_de_estadoServicio(planes_i.estadoServicio),
                 'digitador':planes_i.digitador.first_name,
+                'fecha_upgrade':planes_i.fecha_upgrade,
                 
           
             })
