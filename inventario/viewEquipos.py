@@ -17,7 +17,7 @@ from .models import EquipoInstalado, EquipoMovimientoBodega
 from .serializers import EquipoInstaladoSerializer, EquipoMovimientoBodegaSerializer
 from . serializers import EquipoSerializer
 
-
+from .filters import EquiposInstaladoFilter
 class GeneralPagination(PageNumberPagination):
     page_size = 100
     page_size_query_param = 'page_size'
@@ -190,3 +190,17 @@ class GetEquipoBodega_EquipoView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except EquipoMovimientoBodega.DoesNotExist:
             return Response({"error": "Equipo no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+class InventarioPagination(PageNumberPagination):
+    page_size = 100
+    page_size_query_param = 'page_size'
+    max_page_size = 2000
+
+
+class GetEquipoInstaldo_AllFilter(generics.ListAPIView):
+   queryset = EquipoInstalado.objects.all().order_by('-id')
+   serializer_class = EquipoInstaladoSerializer
+   filter_backends = [DjangoFilterBackend]
+   pagination_class = InventarioPagination
+   filterset_class = EquiposInstaladoFilter
+    

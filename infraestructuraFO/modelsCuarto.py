@@ -1,7 +1,9 @@
 from django.db import models
+from mikrotik.models import RouterMK
 
 # Create your models here.
 class OLT(models.Model):
+    router = models.ForeignKey(RouterMK, null=True, blank=True, on_delete=models.CASCADE)
     nombre = models.CharField(max_length=300)
     fecha_instalacion = models.DateField( null=True, blank=True )
     
@@ -13,7 +15,7 @@ class TarjetaOLT(models.Model):
     nombre = models.CharField(max_length=300)
     fecha_instalacion = models.DateField( null=True, blank=True )
     def __str__(self):
-        return f'{self.olt} - {self.nombre} '
+        return f'{self.nombre} - {self.olt}'
     
 class PuertoTarjeta(models.Model):
     tarjeta = models.ForeignKey(TarjetaOLT ,on_delete=models.CASCADE)

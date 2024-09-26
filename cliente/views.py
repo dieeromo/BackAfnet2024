@@ -105,9 +105,12 @@ class GetOrdenes_estado(APIView):
                 'telefono2': ordenes_i.telefono2,
                 'email': ordenes_i.email,
                 'tipoCliente':ordenes_i.tipoCliente.nombre,
+                'tipoCliente_id':ordenes_i.tipoCliente.id,
                 'tipoInstalacion':ordenes_i.tipoInstalacion,
                 'nacionalidadCliente': ordenes_i.nacionalidadCliente.nombre,
+                'nacionalidadCliente_id': ordenes_i.nacionalidadCliente.id,
                 'fecha_solicitud':ordenes_i.fecha_solicitud.strftime('%d-%m-%Y %H:%M'),
+                'fecha_instalacion':ordenes_i.fecha_instalacion,
                 'direccion':ordenes_i.direccion,
                 'estado':ordenes_i.estado, # 1 no Instalado, 2 Instalado, 3 Eliminado
                 'digitador':ordenes_i.digitador.first_name,

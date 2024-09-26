@@ -50,6 +50,10 @@ class EquipoInstaladoSerializer(serializers.ModelSerializer):
     planName =serializers.CharField(source='planClienteVivienda.plan.nombre', read_only=True)
     direccionName =serializers.CharField(source='planClienteVivienda.clienteVivienda.vivienda.get_vivienda', read_only=True)
     diasInstalado = serializers.CharField(source='dias_instalacion', read_only=True)
+    value = serializers.CharField(source='id', read_only=True)
+    label = serializers.SerializerMethodField()
     class Meta:
         model = EquipoInstalado
         fields = '__all__'
+    def get_label(self, obj):
+        return f'{obj.equipo.homologado.nombre} {obj.equipo.serie} {obj.planClienteVivienda.clienteVivienda.vivienda.direccion}'

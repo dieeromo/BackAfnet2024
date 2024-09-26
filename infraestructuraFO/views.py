@@ -39,10 +39,16 @@ class MufaViewSet(viewsets.ModelViewSet):
     router = routers.DefaultRouter()
     
 
-    
+
     
 class CajaNapViewSet(viewsets.ModelViewSet):
     queryset = CajaNap.objects.all()
     serializer_class = CajaNapSerializer
+    router = routers.DefaultRouter()
+    
+    
+class PuertoTarjetaOLTViewSet(viewsets.ModelViewSet):
+    queryset = PuertoTarjeta.objects.all()
+    serializer_class = PuertoTarjetaSerializer
     router = routers.DefaultRouter()
     

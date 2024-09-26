@@ -50,3 +50,22 @@ class Trazo3Admin(admin.ModelAdmin):
 admin.site.register(Trazo3,Trazo3Admin)
 
 
+class OLTAdmin(admin.ModelAdmin):
+    list_display = ('nombre','fecha_instalacion')
+admin.site.register(OLT,OLTAdmin)
+
+
+class TarjetaOLTAdmin(admin.ModelAdmin):
+    list_display = ('nombre','olt')
+admin.site.register(TarjetaOLT,TarjetaOLTAdmin)
+
+
+class PuertoTarjetaAdmin(admin.ModelAdmin):
+    list_display = ('puerto','tarjeta')
+admin.site.register(PuertoTarjeta,PuertoTarjetaAdmin)
+
+
+
+
+
+

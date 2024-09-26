@@ -98,6 +98,8 @@ class ClienteSerializer(serializers.ModelSerializer):
 
 
 class OrdenInstalacionSerializer(serializers.ModelSerializer):
+    nacionalidadClienteLabel = serializers.CharField(source='nacionalidadCliente.nombre', read_only=True)
+    tipoClienteLabel = serializers.CharField(source='tipoCliente.nombre', read_only=True)
     class Meta:
         model = OrdenInstalacion
         fields = '__all__'
@@ -188,3 +190,22 @@ class OrdenCobroSerializer(serializers.ModelSerializer):
         return anio
         
         
+
+
+class ClienteViviendaSerialize_filter_NapAP(serializers.ModelSerializer):
+    cliente = serializers.CharField(source='cliente.nombresApellidos')
+    vivienda_barrio = serializers.SerializerMethodField()
+    vivienda_comunidad = serializers.SerializerMethodField()
+    direccion_vivienda = serializers.CharField(source='vivienda.direccion')
+    plan = serializers.CharField(source='plan.nombre')
+    ipv4 = serializers.CharField(source='mikrotikplanclientevivienda.ipv4_address')
+    
+    class Meta:
+        model = ClienteVivienda
+        fields = ['cliente', 'vivienda_barrio', 'vivienda_comunidad', 'direccion_vivienda', 'plan', 'ipv4']
+    
+    def get_vivienda_barrio(self, obj):
+        return obj.vivienda.barrio.nombre if obj.vivienda.barrio else None
+
+    def get_vivienda_comunidad(self, obj):
+        return obj.vivienda.comunidad.nombre if obj.vivienda.comunidad else None

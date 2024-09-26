@@ -6,7 +6,7 @@ from .views import EquipoInstaladoViewSet, GetEquipoInstaladoActivo_Plan
 from .views import ListaEquipo_NoInstalatoViewSet
 from .viewEquipos import GetEquipoListFilter_View
 from .viewEquipos import EquipoCountView, EquipoCount_bodega_View
-from .viewEquipos import GetEquipoInstalado_EquipoView, GetEquipoBodega_EquipoView
+from .viewEquipos import GetEquipoInstalado_EquipoView, GetEquipoBodega_EquipoView, GetEquipoInstaldo_AllFilter
 router = DefaultRouter()
 router.register(r'tipo_equipo', TipoEquipoViewSet)
 router.register(r'homologado',HomologadoViewSet )
@@ -29,4 +29,5 @@ urlpatterns = [
     
     path('equiposInstalado_equipo/<int:equipo_id>/', GetEquipoInstalado_EquipoView.as_view()),
     path('equiposBodega_equipo/<int:equipo_id>/', GetEquipoBodega_EquipoView.as_view()),  
+    path('equipo_instalado_all_filter/', GetEquipoInstaldo_AllFilter.as_view()),  
 ]

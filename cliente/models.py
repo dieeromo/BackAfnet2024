@@ -47,6 +47,7 @@ class OrdenInstalacion(models.Model):
     tipoInstalacion = models.IntegerField(choices=[(1, 'Normal'), (2, 'Cambio operadora'), ], default=1)
     nacionalidadCliente = models.ForeignKey(NacionalidadCliente,  on_delete=models.CASCADE)
     fecha_solicitud = models.DateTimeField(auto_now_add=True)
+    fecha_instalacion = models.DateField(null=True, blank=True)
     observacion = models.CharField(max_length=300, null=True, blank=True)
     direccion = models.CharField(max_length=300, blank=True, null=True)
     estado = models.IntegerField(choices=[(1, 'No Instalado'), (2, 'Instalado'), (3, 'Eliminado')], default=1)
@@ -66,6 +67,7 @@ class Cliente(models.Model):
     nacionalidadCliente = models.ForeignKey(NacionalidadCliente,  on_delete=models.CASCADE)
     observacion = models.CharField(max_length=300,  null=True, blank=True)
     digitador = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
+    id_viejo= models.IntegerField(null=True, blank=True)#models.IntegerField
     
     def __str__(self):
         return self.nombresApellidos
@@ -91,10 +93,10 @@ class Vivienda(models.Model):
 class ClienteVivienda(models.Model):
     cliente = models.ForeignKey(Cliente, related_name='clienteviviendas',  on_delete=models.CASCADE)
     vivienda = models.ForeignKey(Vivienda,on_delete=models.CASCADE)
-    fecha_inicio = models.DateField()
+    fecha_inicio = models.DateField(null=True, blank=True)
     fecha_fin = models.DateField(null=True, blank=True)
 
-    tipo = models.IntegerField(choices=[(1, 'Propia'), (2, 'Arrendada'), (3, 'Otro')], default=1)
+    tipo = models.IntegerField(choices=[(1, 'Propia'), (2, 'Arrendada'), (3, 'Otro'),(4,'migracion')], default=1)
     digitador = models.ForeignKey(UserAccount, on_delete=models.CASCADE) 
   
     def __str__(self):

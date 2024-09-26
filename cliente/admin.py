@@ -2,19 +2,27 @@ from django.contrib import admin
 from .models import ClienteVivienda, ClienteViviendaHistorico, Vivienda, Plan
 from .models import PlanClienteVivienda, Upgrade, Cliente, OrdenInstalacion
 from .models import Ciudad, Barrio, Comunidad
-from .models import OrdenCobro, PagosPlanClienteVivienda
+from .models import OrdenCobro, PagosPlanClienteVivienda, TipoCliente
 # Register your models here.
 admin.site.register(Cliente)
 admin.site.register(OrdenInstalacion)
 admin.site.register(Vivienda)
 admin.site.register(ClienteVivienda)
 admin.site.register(Ciudad)
-admin.site.register(Barrio)
+
 admin.site.register(Comunidad)
+
 
 admin.site.register(PagosPlanClienteVivienda)
 
 
+
+class TipoClienteAdmin(admin.ModelAdmin):
+    list_display = ('id', 'nombre')
+admin.site.register(TipoCliente, TipoClienteAdmin)
+class BarrioAdmin(admin.ModelAdmin):
+    list_display = ('id', 'nombre', 'ciudad')
+admin.site.register(Barrio, BarrioAdmin)
 class ClienteViviendaHistoricoAdmin(admin.ModelAdmin):
     list_display = ('id', 'cliente', 'vivienda','clienteVivienda','fecha_inicio','fecha_fin')
 admin.site.register(ClienteViviendaHistorico, ClienteViviendaHistoricoAdmin)
@@ -35,7 +43,7 @@ admin.site.register(Upgrade,UpgradeAdmin)
 
 
 class PlanAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'alias', 'valor')
+    list_display = ('id','nombre', 'alias', 'valor')
 admin.site.register(Plan,PlanAdmin)
 
 class OrdenCobroAdmin(admin.ModelAdmin):

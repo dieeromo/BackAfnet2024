@@ -4,6 +4,7 @@ from .modelsCuarto import PuertoTarjeta
 
 
 
+
 class Mufa(models.Model):
 
     numero = models.IntegerField(null=True, blank=True)
@@ -48,3 +49,7 @@ class CajaNap(models.Model):
     
     # def __str__(self):
     #     return f'nap:{self.numeroNap} - #pu:{self.puertos} - {self.fecha_instalacion}'
+    
+    
+    
+
