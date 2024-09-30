@@ -75,14 +75,47 @@ class ServicioSerializer(serializers.ModelSerializer):
         
 
 class PagoFacturaServicioSerializer(serializers.ModelSerializer):
+    numerofacturaServicio = serializers.CharField(source='facturaServicios.numeroFactura', read_only=True)
+    cajaName = serializers.CharField(source='caja.nombre', read_only=True)
+    modoPagoName = serializers.CharField(source='modoPago.nombre', read_only=True)
     class Meta:
         model = PagoFacturasServicios
         fields = '__all__'
         
 class FacturaServicioSerializer(serializers.ModelSerializer):
+    proveedorName = serializers.CharField(source='proveedor.nombre', read_only=True)
+    servicioName = serializers.CharField(source='servicio.nombre', read_only=True)
+    modoCompraName = serializers.CharField(source='modoCompra.nombre', read_only=True)
+    presupuestoName = serializers.CharField(source='presupuesto.nombre', read_only=True)
     pagosServicios = PagoFacturaServicioSerializer(many=True,read_only=True )
     class Meta:
         model = FacturaServicios
         fields = '__all__'
         
 
+
+class VariosFSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VariosF
+        fields = '__all__'
+        
+        
+        
+class PagoFacturaVariosSerializer(serializers.ModelSerializer):
+    numerofacturaVario = serializers.CharField(source='facturaVarios.numeroFactura', read_only=True)
+    cajaName = serializers.CharField(source='caja.nombre', read_only=True)
+    modoPagoName = serializers.CharField(source='modoPago.nombre', read_only=True)
+    class Meta:
+        model = PagoFacturasVarios
+        fields = '__all__'
+class FacturaVariosSerializer(serializers.ModelSerializer):
+    varioName = serializers.CharField(source='vario.nombre', read_only=True)
+    modoCompraName = serializers.CharField(source='modoCompra.nombre', read_only=True)
+    presupuestoName = serializers.CharField(source='presupuesto.nombre', read_only=True)
+    pagosVarios = PagoFacturaVariosSerializer(many=True,read_only=True )
+    class Meta:
+        model = FacturasVarios
+        fields = '__all__'
+
+
+        

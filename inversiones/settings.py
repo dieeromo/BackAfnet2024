@@ -56,6 +56,8 @@ INSTALLED_APPS = [
 ]
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3003',
+    'http://192.168.10.118:3003'
+    
 
 ]
 CORS_ALLOW_CREDENTIALS = True   # oooojo con ESTA LA PUSE PARA NEXT

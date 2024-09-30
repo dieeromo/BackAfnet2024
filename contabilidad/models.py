@@ -18,7 +18,7 @@ class ModoCompra(models.Model):
     def __str__(self):
         return self.nombre
     
-class ModoPagoProveedor(models.Model):
+class  ModoPagoProveedor(models.Model):
     nombre = models.CharField(max_length=300)
     def __str__(self):
         return self.nombre
