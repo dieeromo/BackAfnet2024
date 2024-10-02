@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.decorators import login_required
-
+from datetime import datetime
 
 from django.http import JsonResponse
 
@@ -114,11 +114,16 @@ def getOrdenesPagadas_planClienteVivienda(request,id):
 
 
 
-
-
-
-def generar_ordenes_cobro_view(request):
-    OrdenCobro.generar_ordenes_de_cobro()
+@api_view(['POST','GET'])
+def generar_ordenes_cobro_view(request, fecha):
+    #print('GENERACION ORDENES', fecha)
+    fecha_date = datetime.strptime(fecha, "%Y-%m-%d")
+    
+    #año mes dia
+    #ingresar el ultimo dia del mes que se desea generar
+    #fecha_ultimo_dia2 = datetime(2024, 9,30 ).date() 
+    #fecha_ultimo_dia2 = datetime(fecha_date.year, fecha_date.month,fecha_date.day ).date() 
+    OrdenCobro.generar_ordenes_de_cobro(fecha_date)
     return JsonResponse({"message": "Órdenes de cobro generadas exitosamente."})
 
 

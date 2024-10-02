@@ -45,7 +45,7 @@ urlpatterns = [
     path('get_pagos_plan_cliente_vivienda/', GetPagosPlanClienteVivienda_View.as_view(),),
     
     ## ojo solo para ordenes de cobro
-    path('generar-ordenes-cobro/', generar_ordenes_cobro_view, name='generar_ordenes_cobro'),
+    path('generar-ordenes-cobro/<str:fecha>/', generar_ordenes_cobro_view, name='generar_ordenes_cobro'),
     
     
 ]
