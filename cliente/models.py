@@ -181,7 +181,7 @@ class OrdenCobro(models.Model):
 
     def calcular_valores(self, fecha_ultimo_dia):
         #primero se verifica que la fecha de genereacion sea mayo que la fecha de instalacion  o upgrade
-        if fecha_ultimo_dia.date() > self.planClienteVivienda.fecha_instalacion or fecha_ultimo_dia.date() > self.planClienteVivienda.fecha_upgrade:
+        if fecha_ultimo_dia.date() > self.planClienteVivienda.fecha_instalacion :
             #Se verifica los estado de planCliente Vivienda
             if self.planClienteVivienda.estado == 1 and self.planClienteVivienda.estadoGeneracionPagos == 0:
                 # Obtenemos el primer día del mes para el cualculo de numero de dias
