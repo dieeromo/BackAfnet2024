@@ -8,6 +8,7 @@ from .views import GetClienteVivienda_cliente, PlanClienteViviendaViewSet, Orden
 from .views import PlanViewSet, GetPlan_ClienteVivienda_clienteVivienda, UpgradeViewSet
 
 from .views2 import ClienteListFilterView,GetOrdenCobro_clienteVivienda_sinPagar
+from .views2 import GetOrdenesCobro_filter
 from .views2 import GetPagosPlanClienteVivienda_View, PagosPlanClienteViviendaViewSet, getOrdenesPagadas_planClienteVivienda
 from .views2 import generar_ordenes_cobro_view
 
@@ -59,6 +60,8 @@ urlpatterns = [
     path('plan_clientevivienda_clientevivienda/', GetPlan_ClienteVivienda_clienteVivienda.as_view(),),
     
     path('orden_cobro_cliente_sin_pagar/', GetOrdenCobro_clienteVivienda_sinPagar.as_view(),),
+    path('orden_cobro_todas/', GetOrdenesCobro_filter.as_view(),),
+    
     path('get_ordenes_pagadas_plancliente/<int:id>/', getOrdenesPagadas_planClienteVivienda),
     path('cliente_filter/', ClienteListFilterView.as_view(),),
     path('get_pagos_plan_cliente_vivienda/', GetPagosPlanClienteVivienda_View.as_view(),),

@@ -181,6 +181,7 @@ class OrdenCobro(models.Model):
 
     def calcular_valores(self, fecha_ultimo_dia):
         # estado: 1 activo  estadoServcio: 1 Corriendo
+       # fecha_ultimo_dia = datetime.strptime(fecha_ultimo_dia, "%Y-%m-%d").date()
         if self.planClienteVivienda.estado == 1 and self.planClienteVivienda.estadoServicio == 1 and self.planClienteVivienda.estadoGeneracionPagos == 0:
             # Obtenemos el primer día del mes para el cualculo de numero de dias
             fecha_primer_dia_mes = self.fecha_generacion.replace(day=1) 
@@ -193,15 +194,15 @@ class OrdenCobro(models.Model):
             if (self.planClienteVivienda.fecha_upgrade): # verficia si hay algun cambio de plan
          
                 if(self.planClienteVivienda.fecha_upgrade.month == fecha_ultimo_dia.month):
-                    dias_corridos = (fecha_ultimo_dia - self.planClienteVivienda.fecha_upgrade).days + 1
+                    dias_corridos = (fecha_ultimo_dia.day() - self.planClienteVivienda.fecha_upgrade).days + 1
                 else :
-                    dias_corridos = (fecha_ultimo_dia - fecha_primer_dia_mes).days + 1
+                    dias_corridos = (fecha_ultimo_dia.date() - fecha_primer_dia_mes.date()).days + 1
                 
             else :
                 if (self.planClienteVivienda.fecha_instalacion.month == fecha_ultimo_dia.month):
-                     dias_corridos = (fecha_ultimo_dia - self.planClienteVivienda.fecha_instalacion).days + 1
+                     dias_corridos = (fecha_ultimo_dia.date() - self.planClienteVivienda.fecha_instalacion).days + 1
                 else:
-                    dias_corridos = (fecha_ultimo_dia - fecha_primer_dia_mes).days  + 1
+                    dias_corridos = (fecha_ultimo_dia.date() - fecha_primer_dia_mes.date()).days  + 1
 
                 
             print(" ----   -----    -----    ---- ")
@@ -264,8 +265,6 @@ class OrdenCobro(models.Model):
             if hoy > (orden.fecha_vencimiento + timedelta(days=orden.dias_extras)):
                 orden.estado = 2  # Vencida
                 orden.save()
-
-
 
 class PagosPlanClienteVivienda(models.Model):
     orden_cobro = models.ForeignKey(OrdenCobro,related_name='pagosPlanClienteVivienda' , on_delete=models.CASCADE)

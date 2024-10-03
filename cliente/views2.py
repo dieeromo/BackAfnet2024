@@ -5,8 +5,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend
 from django.contrib.auth.decorators import login_required
 from datetime import datetime
+from .filters import OrdenCobroFilter
 
 from django.http import JsonResponse
 
@@ -81,6 +83,25 @@ class GetOrdenCobro_clienteVivienda_sinPagar(APIView):
                 'plan':ordenes_i.plan.nombre, # este se mantiene fijo cuando se genero la orden
             })
         return Response(data)
+    
+    
+#### ORDENES DE COBRO
+class OrdenesCobro_Pagination(PageNumberPagination):
+    page_size = 100
+    page_size_query_param = 'page_size'
+    max_page_size = 2000
+
+class GetOrdenesCobro_filter(generics.ListAPIView):
+    queryset = OrdenCobro.objects.all().order_by('-id')
+    serializer_class = OrdenCobroSerializer
+    pagination_class = OrdenesCobro_Pagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = OrdenCobroFilter
+    
+    
+    #search_fields = ['planClienteVivienda','estado','orden_cobro','fecha_pago','caja',]  # Filtra por el nombre
+    
+    
     
     
 ######### pagos PLAN CLIENTE VIVIENDA
