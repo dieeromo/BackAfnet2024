@@ -180,48 +180,53 @@ class OrdenCobro(models.Model):
         return f'Orden de Cobro #{self.id} - PCV:{self.planClienteVivienda.id}'
 
     def calcular_valores(self, fecha_ultimo_dia):
-        # estado: 1 activo  estadoServcio: 1 Corriendo
-       # fecha_ultimo_dia = datetime.strptime(fecha_ultimo_dia, "%Y-%m-%d").date()
-        if self.planClienteVivienda.estado == 1 and self.planClienteVivienda.estadoServicio == 1 and self.planClienteVivienda.estadoGeneracionPagos == 0:
-            # Obtenemos el primer día del mes para el cualculo de numero de dias
-            fecha_primer_dia_mes = self.fecha_generacion.replace(day=1) 
-            
-            
-
-            dias_mes_pasado= (fecha_ultimo_dia - fecha_primer_dia_mes ).days + 1
-            dias_corridos = 0
-            
-            if (self.planClienteVivienda.fecha_upgrade): # verficia si hay algun cambio de plan
-         
-                if(self.planClienteVivienda.fecha_upgrade.month == fecha_ultimo_dia.month):
-                    dias_corridos = (fecha_ultimo_dia.day() - self.planClienteVivienda.fecha_upgrade).days + 1
+        #primero se verifica que la fecha de genereacion sea mayo que la fecha de instalacion  o upgrade
+        if fecha_ultimo_dia.date() > self.planClienteVivienda.fecha_instalacion or fecha_ultimo_dia.date() > self.planClienteVivienda.fecha_upgrade:
+            #Se verifica los estado de planCliente Vivienda
+            if self.planClienteVivienda.estado == 1 and self.planClienteVivienda.estadoGeneracionPagos == 0:
+                # Obtenemos el primer día del mes para el cualculo de numero de dias
+                fecha_primer_dia_mes = self.fecha_generacion.replace(day=1) 
+                
+                dias_mes_facturado= (fecha_ultimo_dia - fecha_primer_dia_mes ).days + 1
+                dias_corridos = 0
+                
+                if (self.planClienteVivienda.fecha_upgrade): # verficia si hay algun cambio de plan
+                    if(self.planClienteVivienda.fecha_upgrade.month == fecha_ultimo_dia.month):
+                        dias_corridos = (fecha_ultimo_dia.date() - self.planClienteVivienda.fecha_upgrade).days + 1
+                    else :
+                        dias_corridos = (fecha_ultimo_dia.date() - fecha_primer_dia_mes.date()).days + 1
                 else :
-                    dias_corridos = (fecha_ultimo_dia.date() - fecha_primer_dia_mes.date()).days + 1
-                
-            else :
-                if (self.planClienteVivienda.fecha_instalacion.month == fecha_ultimo_dia.month):
-                     dias_corridos = (fecha_ultimo_dia.date() - self.planClienteVivienda.fecha_instalacion).days + 1
-                else:
-                    dias_corridos = (fecha_ultimo_dia.date() - fecha_primer_dia_mes.date()).days  + 1
+                    if (self.planClienteVivienda.fecha_instalacion.month == fecha_ultimo_dia.month):
+                        dias_corridos = (fecha_ultimo_dia.date() - self.planClienteVivienda.fecha_instalacion).days + 1
+                    else:
+                        dias_corridos = (fecha_ultimo_dia.date() - fecha_primer_dia_mes.date()).days  + 1
 
+                    
+
+                self.dias_consumo =   dias_corridos
+                self.valor_subtotal = (self.planClienteVivienda.plan.valor / dias_mes_facturado) * dias_corridos
+                self.valor_iva = self.valor_subtotal * 0.15  # Supone un IVA del 15%
+                self.valor_total = round(self.valor_subtotal + self.valor_iva, 2)
+                self.save()
                 
-            print(" ----   -----    -----    ---- ")
-            self.dias_consumo =   dias_corridos
-            self.valor_subtotal = (self.planClienteVivienda.plan.valor / dias_mes_pasado) * dias_corridos
-            self.valor_iva = self.valor_subtotal * 0.15  # Supone un IVA del 15%
-            self.valor_total = round(self.valor_subtotal + self.valor_iva, 2)
-            self.save()
+                #estado: 2 Suspendido  y estadoservicio: 1 corriendo
+            #elif  self.planClienteVivienda.estado == 2 and self.planClienteVivienda.estadoServicio == 1: 
+            else:           
+                self.valor_subtotal = 0
+                self.valor_iva = 0
+                self.valor_total = 0
+                self.save()
+                
+                #2 y 2 no genera, significa que no cancelo esta suspendido y cortado
+                
+                # en los demas casos no se genera
+        else:
+                self.valor_subtotal = 0
+                self.valor_iva = 0
+                self.valor_total = 0
+                self.save()
+                
             
-            #estado: 2 Suspendido  y estadoservicio: 1 corriendo
-        elif  self.planClienteVivienda.estado == 2 and self.planClienteVivienda.estadoServicio == 1:            
-            self.valor_subtotal = 0
-            self.valor_iva = 0
-            self.valor_total = 0
-            self.save()
-            
-            #2 y 2 no genera, significa que no cancelo esta suspendido y cortado
-            
-            # en los demas casos no se genera
         
     def actualizar_abono(self, abono):
         self.valor_abonado += abono
